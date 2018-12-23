@@ -1,13 +1,17 @@
 extern crate cfg_if;
 extern crate js_sys;
+extern crate pub_sub;
 extern crate wasm_bindgen;
 extern crate web_sys;
 
+mod dispatcher;
 mod species;
 mod utils;
 
+use dispatcher::{Dispatch, Dispatcher, Event, HandlesEvents};
 use species::Species;
 use wasm_bindgen::prelude::*;
+
 // use web_sys::console;
 
 #[wasm_bindgen]
@@ -51,6 +55,7 @@ pub struct Universe {
     winds: Vec<Wind>,
     burns: Vec<Wind>,
     generation: u8,
+    dispatcher: Dispatcher<Event>,
 }
 
 pub struct SandApi<'a> {
@@ -86,9 +91,7 @@ impl<'a> SandApi<'a> {
         if nx < 0 || nx > self.universe.width - 1 || ny < 0 || ny > self.universe.height - 1 {
             return;
         }
-        let i = self
-            .universe
-            .get_index(nx, ny);
+        let i = self.universe.get_index(nx, ny);
         // v.clock += 1;
         self.universe.cells[i] = v;
         self.universe.cells[i].clock = self.universe.generation.wrapping_add(1);
@@ -111,6 +114,22 @@ impl<'a> SandApi<'a> {
 
 #[wasm_bindgen]
 impl Universe {
+    // Queueing stuff
+    fn handle_event(&mut self, event: Event) {
+        self.paint(event.x, event.y, event.size, event.species)
+    }
+    pub fn add_event(&mut self, x: i32, y: i32, size: i32, species: Species) {
+        self.dispatcher.add_event(Event {
+            x: x,
+            y: y,
+            size: size,
+            species: species,
+        });
+    }
+    fn get_at_offset(&self, offset: usize) -> Option<&Event> {
+        self.dispatcher.get_at_offset(offset)
+    }
+    // End queueing stuff
     pub fn reset(&mut self) {
         for x in 0..self.width {
             for y in 0..self.height {
@@ -255,6 +274,7 @@ impl Universe {
             burns,
             winds,
             generation: 0,
+            dispatcher: Dispatcher::new(),
         }
     }
 }
