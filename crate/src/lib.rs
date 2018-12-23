@@ -8,7 +8,7 @@ mod dispatcher;
 mod species;
 mod utils;
 
-use dispatcher::{Dispatch, Dispatcher, Event, HandlesEvents};
+use dispatcher::{Dispatch, Dispatcher, Event};
 use species::Species;
 use wasm_bindgen::prelude::*;
 
@@ -55,7 +55,7 @@ pub struct Universe {
     winds: Vec<Wind>,
     burns: Vec<Wind>,
     generation: u8,
-    dispatcher: Dispatcher<Event>,
+    dispatcher: Dispatcher,
 }
 
 pub struct SandApi<'a> {

@@ -10,17 +10,17 @@ pub struct Event {
     pub species: Species,
 }
 
-pub struct Dispatcher<E: Clone> {
-    event_channel: PubSub<E>,
-    event_queue: VecDeque<E>,
+pub struct Dispatcher {
+    event_channel: PubSub<Event>,
+    event_queue: VecDeque<Event>,
 }
 
 pub trait HandlesEvents {
     fn handle_event(&mut self, event: Event);
 }
 
-impl Dispatcher<Event> {
-    pub fn new() -> Dispatcher<Event> {
+impl Dispatcher {
+    pub fn new() -> Dispatcher {
         Dispatcher {
             event_channel: PubSub::<Event>::new(),
             event_queue: VecDeque::new(),
@@ -33,7 +33,7 @@ pub trait Dispatch {
     fn get_at_offset(&self, offset: usize) -> Option<&Event>;
 }
 
-impl Dispatch for Dispatcher<Event> {
+impl Dispatch for Dispatcher {
     fn add_event(&mut self, event: Event) {
         self.event_channel.send(event);
     }
